@@ -16,22 +16,22 @@ class SNLICrossEncoderBucketingDataset(Dataset):
                  tokenizer: PreTrainedTokenizerBase,
                  premises: Sequence[str],
                  hypotheses: Sequence[str],
-                 target: Sequence[int],
+                 targets: Sequence[int],
                  max_length: int = 512,
                  batch_size: int = 32):
         self.tokenizer = tokenizer
         self.cache = {}
         self.max_length = max_length
-        self.data = self.prepare_batches(premises, hypotheses, target, batch_size)
+        self.data = self.prepare_batches(premises, hypotheses, targets, batch_size)
 
     def __len__(self):
         return len(self.data)
 
-    def prepare_batches(self, premises, hypotheses, target, batch_size):
+    def prepare_batches(self, premises, hypotheses, targets, batch_size):
         tokenized = [cached_tokenize((p, h), self.tokenizer, self.cache)
                      for p, h in tqdm(list(zip(premises, hypotheses)))]
 
-        data = sorted(zip(tokenized, target), key=lambda x: len(x[0]))
+        data = sorted(zip(tokenized, targets), key=lambda x: len(x[0]))
         batched_data = []
 
         for i_batch in range(math.ceil(len(data) / batch_size)):
@@ -70,21 +70,21 @@ class SNLIBiEncoderBucketingDataset(SNLICrossEncoderBucketingDataset):
                  tokenizer: PreTrainedTokenizerBase,
                  premises: Sequence[str],
                  hypotheses: Sequence[str],
-                 target: Sequence[int],
+                 targets: Sequence[int],
                  max_length: int = 512,
                  batch_size: int = 32):
         self.tokenizer = tokenizer
         self.cache = {}
         self.max_length = max_length
-        self.data = self.prepare_batches(premises, hypotheses, target, batch_size)
+        self.data = self.prepare_batches(premises, hypotheses, targets, batch_size)
 
     @overrides
-    def prepare_batches(self, premises, hypotheses, target, batch_size):
+    def prepare_batches(self, premises, hypotheses, targets, batch_size):
         tokenized = [cached_tokenize(s, self.tokenizer, self.cache)
                      for s in tqdm(list(premises) + list(hypotheses))]
         premises_tokenized, hypotheses_tokenized = tokenized[:len(premises)], tokenized[-len(hypotheses):]
 
-        data = sorted(zip(premises_tokenized, hypotheses_tokenized, target), key=lambda x: len(x[0]))
+        data = sorted(zip(premises_tokenized, hypotheses_tokenized, targets), key=lambda x: len(x[0]))
         batched_data = []
 
         for i_batch in range(math.ceil(len(data) / batch_size)):
