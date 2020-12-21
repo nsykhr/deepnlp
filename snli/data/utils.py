@@ -1,5 +1,6 @@
 import os
 import json
+import torch
 import pandas as pd
 
 
@@ -46,5 +47,40 @@ def cached_tokenize(sentence, tokenizer, cache):
     return tokens
 
 
-def collate_fn(x):
-    return x[0]
+def cached_encode(sentence, tokenizer, cache):
+    if (sentence, tokenizer.name_or_path) in cache:
+        return cache[(sentence, tokenizer.name_or_path)]
+
+    indices = tokenizer.encode(sentence, add_special_tokens=True)
+    cache[(sentence, tokenizer.name_or_path)] = indices
+
+    return indices
+
+
+def collate_fn(batch, padding_idx: int = 0):
+    sequences = [x[0] for x in batch]
+    targets = [x[1] for x in batch]
+
+    max_len = max(len(x) for x in sequences)
+    sequences = torch.tensor([seq + [padding_idx] * (max_len - len(seq)) for seq in sequences]).long()
+    targets = torch.tensor(targets).long()
+
+    return sequences, targets
+
+
+def collate_fn_biencoder(batch, padding_idx: int = 0):
+    premises = [x[0] for x in batch]
+    hypotheses = [x[1] for x in batch]
+    targets = [x[2] for x in batch]
+
+    max_len_p = max(len(p) for p in premises)
+    premises = torch.tensor([p + [padding_idx] * (max_len_p - len(p)) for p in premises]).long()
+    max_len_h = max(len(h) for h in hypotheses)
+    hypotheses = torch.tensor([h + [padding_idx] * (max_len_h - len(h)) for h in hypotheses]).long()
+    targets = torch.tensor(targets).long()
+
+    return premises, hypotheses, targets
+
+
+def collate_fn_buckets(batch):
+    return batch[0]

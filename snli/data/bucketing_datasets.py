@@ -11,7 +11,7 @@ from data.utils import cached_tokenize
 from typing import Sequence, Tuple
 
 
-class SNLICrossEncoderDataset(Dataset):
+class SNLICrossEncoderBucketingDataset(Dataset):
     def __init__(self,
                  tokenizer: PreTrainedTokenizerBase,
                  premises: Sequence[str],
@@ -65,7 +65,7 @@ class SNLICrossEncoderDataset(Dataset):
         return batch_x, batch_y
 
 
-class SNLIBiEncoderDataset(SNLICrossEncoderDataset):
+class SNLIBiEncoderBucketingDataset(SNLICrossEncoderBucketingDataset):
     def __init__(self,
                  tokenizer: PreTrainedTokenizerBase,
                  premises: Sequence[str],
