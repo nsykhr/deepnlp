@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from tqdm import tqdm
 
@@ -57,7 +58,8 @@ class Trainer:
         best_valid_loss = float('inf')
 
         for epoch in range(num_epochs):
-            print(f'Epoch {epoch + 1}/{num_epochs}')
+            print(f'Epoch {epoch + 1}/{num_epochs}:')
+            time.sleep(0.5)
 
             self.model.train()
 

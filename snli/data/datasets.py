@@ -1,10 +1,9 @@
-from overrides import overrides
-
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizerBase
 
 from data.utils import cached_encode
 
+from overrides import overrides
 from typing import Sequence, Tuple, Union
 
 
