@@ -15,16 +15,12 @@ def get_encoder_grouped_parameters(model):
     optimizer_grouped_parameters = []
     no_decay = ['bias', 'LayerNorm.weight']
 
-    for attr in ['encoder', 'premise_encoder', 'hypothesis_encoder']:
-        if not hasattr(model, attr):
-            continue
-
-        optimizer_grouped_parameters.extend([
-            {'params': [p for n, p in getattr(model, attr).named_parameters() if not any(nd in n for nd in no_decay)],
-             'lr': 1e-5, 'weight_decay': 0.01},
-            {'params': [p for n, p in getattr(model, attr).named_parameters() if any(nd in n for nd in no_decay)],
-             'lr': 1e-5, 'weight_decay': 0.0}
-        ])
+    optimizer_grouped_parameters.extend([
+        {'params': [p for n, p in model.encoder.named_parameters() if not any(nd in n for nd in no_decay)],
+         'lr': 1e-5, 'weight_decay': 0.01},
+        {'params': [p for n, p in model.encoder.named_parameters() if any(nd in n for nd in no_decay)],
+         'lr': 1e-5, 'weight_decay': 0.0}
+    ])
 
     return optimizer_grouped_parameters
 

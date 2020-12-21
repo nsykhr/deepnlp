@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -18,8 +16,7 @@ class NLIBiEncoder(nn.Module):
                  hidden_size: int = 512,
                  dropout_rate: float = 0.5):
         super().__init__()
-        self.premise_encoder = deepcopy(encoder)
-        self.hypothesis_encoder = deepcopy(encoder)
+        self.encoder = encoder
         if num_linear_layers > 0:
             self.fc_hidden = nn.ModuleList([nn.Linear(encoder.config.hidden_size * 2, hidden_size), nn.ReLU()])
             if dropout_rate > 0:
@@ -35,8 +32,8 @@ class NLIBiEncoder(nn.Module):
     def forward(self,
                 premise: torch.Tensor,
                 hypothesis: torch.Tensor):
-        premise = self.get_cls_encoding(self.premise_encoder(premise))
-        hypothesis = self.get_cls_encoding(self.hypothesis_encoder(hypothesis))
+        premise = self.get_cls_encoding(self.encoder(premise))
+        hypothesis = self.get_cls_encoding(self.encoder(hypothesis))
         sequence = torch.cat((premise, hypothesis), dim=1)
         if hasattr(self, 'fc_hidden'):
             for layer in self.fc_hidden:
