@@ -103,7 +103,7 @@ class Trainer:
                   f'Training accuracy: {self.train_epoch_metrics[-1]}. '
                   f'Validation accuracy: {self.valid_epoch_metrics[-1]}.')
 
-            if self.valid_epoch_metrics[-1] - max(self.valid_epoch_metrics) < -0.001 or \
+            if self.valid_epoch_metrics[-1] - max(self.valid_epoch_metrics) < -0.005 and \
                     valid_epoch_loss / best_valid_loss > 1.05:
                 print('Validation performance has started degrading. Performing early stopping.')
                 break
