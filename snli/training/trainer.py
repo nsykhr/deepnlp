@@ -64,7 +64,7 @@ class Trainer:
 
             self.model.train()
 
-            if epoch == 0:
+            if frozen_encoder_epochs > 0 and epoch == 0:
                 freeze_parameters(self.model.encoder)
             elif epoch == frozen_encoder_epochs:
                 unfreeze_parameters(self.model.encoder)
