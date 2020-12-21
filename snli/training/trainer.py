@@ -7,7 +7,7 @@ from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 
-from training.utils import get_adamw_optimizer
+from training.utils import get_adamw_optimizer, freeze_parameters, unfreeze_parameters
 
 from typing import Callable, Tuple, Union
 
@@ -53,6 +53,7 @@ class Trainer:
               valid_loader: DataLoader,
               last_n_losses: int = 500,
               num_epochs: int = 100,
+              frozen_encoder_epochs: int = 1,
               clip: float = 3.,
               verbose: bool = True) -> nn.Module:
         best_valid_loss = float('inf')
@@ -62,6 +63,11 @@ class Trainer:
             time.sleep(0.5)
 
             self.model.train()
+
+            if epoch == 0:
+                freeze_parameters(self.model.encoder)
+            elif epoch == frozen_encoder_epochs:
+                unfreeze_parameters(self.model.encoder)
 
             correct, total = 0, 0
             train_epoch_losses = []
