@@ -21,11 +21,11 @@ class NLIBiEncoder(nn.Module):
         self.premise_encoder = deepcopy(encoder)
         self.hypothesis_encoder = deepcopy(encoder)
         if num_linear_layers > 0:
-            self.fc_hidden = nn.ModuleList([nn.Linear(encoder.config.hidden_size * 2, hidden_size)])
+            self.fc_hidden = nn.ModuleList([nn.Linear(encoder.config.hidden_size * 2, hidden_size), nn.ReLU()])
             if dropout_rate > 0:
                 self.fc_hidden.append(nn.Dropout(dropout_rate))
             for _ in range(1, num_linear_layers):
-                self.fc_hidden.append(nn.Linear(hidden_size, hidden_size))
+                self.fc_hidden.extend([nn.Linear(hidden_size, hidden_size), nn.ReLU()])
                 if dropout_rate > 0:
                     self.fc_hidden.append(nn.Dropout(dropout_rate))
         hidden_size = hidden_size if num_linear_layers > 0 else encoder.config.hidden_size * 2
@@ -66,11 +66,11 @@ class NLICrossEncoder(nn.Module):
         super().__init__()
         self.encoder = encoder
         if num_linear_layers > 0:
-            self.fc_hidden = nn.ModuleList([nn.Linear(encoder.config.hidden_size, hidden_size)])
+            self.fc_hidden = nn.ModuleList([nn.Linear(encoder.config.hidden_size, hidden_size), nn.ReLU()])
             if dropout_rate > 0:
                 self.fc_hidden.append(nn.Dropout(dropout_rate))
             for _ in range(1, num_linear_layers):
-                self.fc_hidden.append(nn.Linear(hidden_size, hidden_size))
+                self.fc_hidden.extend([nn.Linear(hidden_size, hidden_size), nn.ReLU()])
                 if dropout_rate > 0:
                     self.fc_hidden.append(nn.Dropout(dropout_rate))
         hidden_size = hidden_size if num_linear_layers > 0 else encoder.config.hidden_size
