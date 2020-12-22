@@ -73,10 +73,7 @@ class SNLIBiEncoderBucketingDataset(SNLICrossEncoderBucketingDataset):
                  targets: Sequence[int],
                  max_length: int = 512,
                  batch_size: int = 32):
-        self.tokenizer = tokenizer
-        self.cache = {}
-        self.max_length = max_length
-        self.data = self.prepare_batches(premises, hypotheses, targets, batch_size)
+        super().__init__(tokenizer, premises, hypotheses, targets, max_length=max_length, batch_size=batch_size)
 
     @overrides
     def prepare_batches(self, premises, hypotheses, targets, batch_size):

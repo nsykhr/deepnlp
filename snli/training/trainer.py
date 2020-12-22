@@ -43,7 +43,7 @@ class Trainer:
         x = batch[:-1]
         y = batch[-1]
 
-        x = tuple(map(lambda x: x.to(self.device), x))
+        x = tuple(map(lambda t: t.to(self.device), x))
         y = y.to(self.device)
 
         return x, y
