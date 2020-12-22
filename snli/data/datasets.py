@@ -6,12 +6,10 @@ from typing import Sequence, Tuple
 
 class SNLIDataset(Dataset):
     def __init__(self,
-                 tokenizer: PreTrainedTokenizerBase,
                  premises: Sequence[str],
                  hypotheses: Sequence[str],
                  targets: Sequence[int],
                  max_length: int = 512):
-        self.tokenizer = tokenizer
         self.premises = premises
         self.hypotheses = hypotheses
         self.targets = targets

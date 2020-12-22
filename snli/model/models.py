@@ -11,6 +11,7 @@ class NLICrossEncoder(nn.Module):
     def __init__(self,
                  encoder: PreTrainedModel,
                  n_classes: int,
+                 get_cls_encoding_fn: Callable,
                  num_linear_layers: int = 2,
                  hidden_size: int = 512,
                  dropout_rate: float = 0.5):
@@ -26,6 +27,7 @@ class NLICrossEncoder(nn.Module):
                     self.fc_hidden.append(nn.Dropout(dropout_rate))
         hidden_size = hidden_size if num_linear_layers > 0 else encoder.config.hidden_size
         self.fc_output = nn.Linear(hidden_size, n_classes)
+        self.get_cls_encoding = get_cls_encoding_fn
 
     def forward(self,
                 sequence: torch.Tensor,
