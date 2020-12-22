@@ -47,39 +47,31 @@ def cached_tokenize(sentence, tokenizer, cache):
     return tokens
 
 
-def cached_encode(sentence, tokenizer, cache):
-    if (sentence, tokenizer.name_or_path) in cache:
-        return cache[(sentence, tokenizer.name_or_path)]
-
-    indices = tokenizer.encode(sentence, add_special_tokens=True)
-    cache[(sentence, tokenizer.name_or_path)] = indices
-
-    return indices
-
-
-def collate_fn(batch, padding_idx: int = 0):
+def collate_fn(batch, tokenizer):
     sequences = [x[0] for x in batch]
     targets = [x[1] for x in batch]
 
-    max_len = max(len(x) for x in sequences)
-    sequences = torch.tensor([seq + [padding_idx] * (max_len - len(seq)) for seq in sequences]).long()
+    encoded = tokenizer(sequences, padding=True, truncation=True, return_tensors='pt', return_attention_mask=True)
+    sequences, attention_mask = encoded.input_ids, encoded.attention_mask
     targets = torch.tensor(targets).long()
 
-    return sequences, targets
+    return sequences, attention_mask, targets
 
 
-def collate_fn_biencoder(batch, padding_idx: int = 0):
-    premises = [x[0] for x in batch]
-    hypotheses = [x[1] for x in batch]
-    targets = [x[2] for x in batch]
+def collate_fn_biencoder(batch, tokenizer):
+    premises = [x[0][0] for x in batch]
+    hypotheses = [x[0][1] for x in batch]
+    targets = [x[1] for x in batch]
 
-    max_len_p = max(len(p) for p in premises)
-    premises = torch.tensor([p + [padding_idx] * (max_len_p - len(p)) for p in premises]).long()
-    max_len_h = max(len(h) for h in hypotheses)
-    hypotheses = torch.tensor([h + [padding_idx] * (max_len_h - len(h)) for h in hypotheses]).long()
+    premises = tokenizer(premises, padding=True, truncation=True, return_tensors='pt', return_attention_mask=True)
+    premises, attention_mask_p = premises.input_ids, premises.attention_mask
+
+    hypotheses = tokenizer(hypotheses, padding=True, truncation=True, return_tensors='pt', return_attention_mask=True)
+    hypotheses, attention_mask_h = hypotheses.input_ids, hypotheses.attention_mask
+
     targets = torch.tensor(targets).long()
 
-    return premises, hypotheses, targets
+    return premises, hypotheses, attention_mask_p, attention_mask_h, targets
 
 
 def collate_fn_buckets(batch):

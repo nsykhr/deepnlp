@@ -28,8 +28,9 @@ class NLICrossEncoder(nn.Module):
         self.fc_output = nn.Linear(hidden_size, n_classes)
 
     def forward(self,
-                sequence: torch.Tensor):
-        sequence = self.get_cls_encoding(self.encoder(sequence))
+                sequence: torch.Tensor,
+                attention_mask: torch.Tensor):
+        sequence = self.get_cls_encoding(self.encoder(sequence, attention_mask=attention_mask))
         if hasattr(self, 'fc_hidden'):
             for layer in self.fc_hidden:
                 sequence = layer(sequence)
@@ -38,9 +39,10 @@ class NLICrossEncoder(nn.Module):
         return logits
 
     def predict(self,
-                sequence: torch.Tensor):
+                sequence: torch.Tensor,
+                attention_mask: torch.Tensor):
         self.eval()
-        logits = self.forward(sequence)
+        logits = self.forward(sequence, attention_mask=attention_mask)
         probs = F.softmax(logits, dim=-1)
         preds = probs.argmax(dim=-1)
 
@@ -70,11 +72,13 @@ class NLIBiEncoder(nn.Module):
         self.get_cls_encoding = get_cls_encoding_fn
 
     def forward(self,
-                premise: torch.Tensor,
-                hypothesis: torch.Tensor):
-        premise = self.get_cls_encoding(self.encoder(premise))
-        hypothesis = self.get_cls_encoding(self.encoder(hypothesis))
-        sequence = torch.cat((premise, hypothesis), dim=1)
+                premises: torch.Tensor,
+                hypotheses: torch.Tensor,
+                attention_mask_p: torch.Tensor,
+                attention_mask_h: torch.Tensor):
+        premises = self.get_cls_encoding(self.encoder(premises, attention_mask=attention_mask_p))
+        hypotheses = self.get_cls_encoding(self.encoder(hypotheses, attention_mask=attention_mask_h))
+        sequence = torch.cat((premises, hypotheses), dim=1)
         if hasattr(self, 'fc_hidden'):
             for layer in self.fc_hidden:
                 sequence = layer(sequence)
@@ -83,10 +87,12 @@ class NLIBiEncoder(nn.Module):
         return logits
 
     def predict(self,
-                premise: torch.Tensor,
-                hypothesis: torch.Tensor):
+                premises: torch.Tensor,
+                hypotheses: torch.Tensor,
+                attention_mask_p: torch.Tensor,
+                attention_mask_h: torch.Tensor):
         self.eval()
-        logits = self.forward(premise, hypothesis)
+        logits = self.forward(premises, hypotheses, attention_mask_p, attention_mask_h)
         probs = F.softmax(logits, dim=-1)
         preds = probs.argmax(dim=-1)
 

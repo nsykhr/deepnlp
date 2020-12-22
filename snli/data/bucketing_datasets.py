@@ -42,27 +42,20 @@ class SNLICrossEncoderBucketingDataset(Dataset):
 
         return batched_data
 
-    def prepare_sequence(self, sequence: Sequence[str], max_length: int) -> Sequence[int]:
-        sequence = sequence[:max_length]
-        sequence += [self.tokenizer.pad_token] * (max_length - len(sequence))
-        indices = self.tokenizer.convert_tokens_to_ids(sequence)
-
-        return indices
-
-    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         batch = self.data[index]
-        max_length = min([self.max_length, max([len(sequence) for sequence in batch[0]])])
-
         batch_x, batch_y = [], []
 
         for sequence, target in zip(*batch):
-            batch_x.append(self.prepare_sequence(sequence, max_length))
+            batch_x.append(sequence)
             batch_y.append(target)
 
-        batch_x = torch.tensor(batch_x).long()
+        encoded = self.tokenizer(batch_x, padding='max_length', return_tensors='pt',
+                                 return_attention_mask=True, is_split_into_words=True)
+        batch_x, attention_mask = encoded.input_ids, encoded.attention_mask
         batch_y = torch.tensor(batch_y).long()
 
-        return batch_x, batch_y
+        return batch_x, attention_mask, batch_y
 
 
 class SNLIBiEncoderBucketingDataset(SNLICrossEncoderBucketingDataset):
@@ -94,21 +87,24 @@ class SNLIBiEncoderBucketingDataset(SNLICrossEncoderBucketingDataset):
         return batched_data
 
     @overrides
-    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         batch = self.data[index]
-
-        max_p_length = min([self.max_length, max([len(sequence) for sequence in batch[0]])])
-        max_h_length = min([self.max_length, max([len(sequence) for sequence in batch[1]])])
 
         batch_p, batch_h, batch_y = [], [], []
 
         for premise, hypothesis, target in zip(*batch):
-            batch_p.append(self.prepare_sequence(premise, max_p_length))
-            batch_h.append(self.prepare_sequence(hypothesis, max_h_length))
+            batch_p.append(premise)
+            batch_h.append(hypothesis)
             batch_y.append(target)
 
-        batch_p = torch.tensor(batch_p).long()
-        batch_h = torch.tensor(batch_h).long()
+        premises = self.tokenizer(batch_p, padding=True, truncation=True, return_tensors='pt',
+                                  return_attention_mask=True, is_split_into_words=True)
+        batch_p, attention_mask_p = premises.input_ids, premises.attention_mask
+
+        hypotheses = self.tokenizer(batch_h, padding=True, truncation=True, return_tensors='pt',
+                                    return_attention_mask=True, is_split_into_words=True)
+        batch_h, attention_mask_h = hypotheses.input_ids, hypotheses.attention_mask
+
         batch_y = torch.tensor(batch_y).long()
 
-        return batch_p, batch_h, batch_y
+        return batch_p, batch_h, attention_mask_p, attention_mask_h, batch_y
