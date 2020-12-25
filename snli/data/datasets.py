@@ -1,5 +1,4 @@
 from torch.utils.data import Dataset
-from transformers import PreTrainedTokenizerBase
 
 from typing import Sequence, Tuple
 
